@@ -12,11 +12,10 @@ import java.util.Properties;
 
 @SpringBootApplication
 public class KafkaStreamsApplication {
-
-	private static String APPLICATION_NAME = "streams-application";
+	private static String APPLICATION_NAME = "streams-filter-application";
 	private static String BOOTSTRAP_SERVERS = "localhost:9092";
 	private static String STREAM_LOG = "stream_log";
-	private static String STREAM_LOG_COPY = "stream_log_copy";
+	private static String STREAM_LOG_FILTER = "stream_log_filter";
 
 	public static void main(String[] args) {
 
@@ -27,12 +26,17 @@ public class KafkaStreamsApplication {
 		props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
 		StreamsBuilder builder = new StreamsBuilder();
-		KStream<String, String> stream = builder.stream(STREAM_LOG);
+		KStream<String, String> streamLog = builder.stream(STREAM_LOG);
+//        KStream<String, String> filteredStream = streamLog.filter(
+//                (key, value) -> value.length() > 5);
+//        filteredStream.to(STREAM_LOG_FILTER);
+
+		streamLog.filter((key, value) -> value.length() > 5).to(STREAM_LOG_FILTER);
 
 
-		stream.to(STREAM_LOG_COPY);
-
-		KafkaStreams streams = new KafkaStreams(builder.build(), props);
+		KafkaStreams streams;
+		streams = new KafkaStreams(builder.build(), props);
 		streams.start();
+
 	}
 }
